@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公投開票中心</title>
+<style>
+  :root{
+    --pink:#ec6ea6;
+    --pink-light:#fbdcea;
+    --purple:#9b7fd4;
+    --purple-light:#e9e2fb;
+    --gray:#8d8d8d;
+    --gray-light:#e9e9e9;
+    --text:#4a4a4a;
+    --bg:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--bg);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 80px;
+  }
+  .wrap{width:100%;max-width:760px;}
+  h1{
+    text-align:center;
+    font-size:2.2rem;
+    font-weight:800;
+    color:var(--pink);
+    letter-spacing:1px;
+    margin:0 0 8px;
+  }
+  .sub{
+    text-align:center;
+    color:var(--gray);
+    font-size:.85rem;
+    margin-bottom:32px;
+  }
+  .row{
+    display:flex;
+    gap:14px;
+    margin-bottom:18px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  input[type="text"], input[type="number"]{
+    flex:1;
+    min-width:180px;
+    border:2px solid var(--pink);
+    border-radius:999px;
+    padding:13px 20px;
+    font-size:1rem;
+    color:var(--text);
+    outline:none;
+    background:#fff;
+  }
+  input::placeholder{color:#c9a9bb;}
+  .btn{
+    border:2px solid #333;
+    border-radius:999px;
+    background:#fff;
+    padding:13px 24px;
+    font-size:.95rem;
+    font-weight:700;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover{ transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,.12); }
+  .btn:active{ transform:translateY(0); }
+  .btn:focus-visible, .pill:focus-visible, .vote-item:focus-visible{ outline:3px solid var(--purple); outline-offset:2px; }
+
+  .label{
+    width:100px;
+    font-weight:700;
+    flex-shrink:0;
+    text-align:right;
+    margin-right:2px;
+  }
+  .choices{ display:flex; gap:8px; flex-wrap:wrap; }
+  .pill{
+    border-radius:999px;
+    padding:9px 18px;
+    font-weight:700;
+    cursor:pointer;
+    background:#fff;
+    user-select:none;
+    transition:all .15s ease;
+    font-size:.92rem;
+  }
+  .pill.pink-outline{ border:2px solid var(--pink); color:var(--pink); }
+  .pill.pink-outline.active{ background:var(--pink); color:#fff; }
+  .pill.purple-outline{ border:2px solid var(--purple); color:var(--purple); }
+  .pill.purple-outline.active{ background:var(--purple); color:#fff; }
+
+  .actions{ display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; }
+  .actions .big{
+    flex:1;
+    min-width:140px;
+    padding:15px 0;
+    border-radius:999px;
+    text-align:center;
+    font-size:1.05rem;
+    font-weight:800;
+    color:#fff;
+    border:none;
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .actions .big:hover{ transform:translateY(-2px); box-shadow:0 6px 14px rgba(0,0,0,.15); }
+  .vote-btn{ background:var(--pink); }
+  .count-btn{ background:var(--purple); }
+  .download-btn{ background:var(--gray); }
+  .big:disabled{ opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  .candidates{
+    margin-top:8px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+    gap:12px;
+  }
+  .cand-card{
+    border:2px solid var(--purple-light);
+    border-radius:16px;
+    padding:10px 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .avatar{
+    width:44px; height:44px; border-radius:50%;
+    background:var(--purple-light);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    flex-shrink:0;
+    cursor:pointer;
+    border:2px solid var(--purple);
+    position:relative;
+  }
+  .avatar img{ width:100%; height:100%; object-fit:cover; }
+  .avatar .plus{ color:var(--purple); font-size:1.1rem; font-weight:800; }
+  .cand-card input[type="text"]{
+    border:none;
+    border-bottom:2px solid var(--purple-light);
+    border-radius:0;
+    padding:6px 2px;
+    font-size:.92rem;
+    min-width:0;
+  }
+  .cand-card input[type="text"]:focus{ border-bottom-color:var(--purple); }
+  .hidden-file{ display:none; }
+
+  .section-title{
+    font-weight:800;
+    color:var(--pink);
+    margin:32px 0 14px;
+    font-size:1.1rem;
+    border-left:6px solid var(--pink);
+    padding-left:10px;
+  }
+
+  .vote-list{ display:flex; flex-direction:column; gap:10px; }
+  .vote-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border:2px solid var(--pink-light);
+    border-radius:16px;
+    padding:10px 16px;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .vote-item:hover{ background:var(--pink-light); }
+  .vote-item.selected{ background:var(--pink); border-color:var(--pink); color:#fff; }
+  .vote-item .thumb{
+    width:36px; height:36px; border-radius:50%; flex-shrink:0; overflow:hidden;
+    background:var(--purple-light); display:flex; align-items:center; justify-content:center;
+    font-weight:800; color:var(--purple); font-size:.8rem;
+  }
+  .vote-item.selected .thumb{ background:#fff; }
+  .vote-item .thumb img{ width:100%; height:100%; object-fit:cover; }
+  .hint{ color:var(--gray); font-size:.85rem; margin-top:8px; }
+
+  .notice{
+    border:2px dashed var(--purple);
+    border-radius:16px;
+    padding:20px;
+    text-align:center;
+    color:var(--purple);
+    font-weight:700;
+  }
+  .notice small{ display:block; margin-top:6px; color:var(--gray); font-weight:400; }
+
+  .result-list{ display:flex; flex-direction:column; gap:10px; margin-top:20px;}
+  .result-item{
+    display:flex; align-items:center; gap:14px;
+    border-radius:16px; padding:12px 16px;
+    background:var(--purple-light);
+    flex-wrap:wrap;
+  }
+  .rank{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--purple); color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800; flex-shrink:0; font-size:.9rem;
+  }
+  .rank.gold{ background:#e8b800; }
+  .rank.silver{ background:#a7a7a7; }
+  .rank.bronze{ background:#c07a3f; }
+  .rthumb{
+    width:32px; height:32px; border-radius:50%; overflow:hidden; flex-shrink:0;
+    background:#fff;
+  }
+  .rthumb img{ width:100%; height:100%; object-fit:cover; }
+  .rname{ flex:1; font-weight:700; min-width:80px; }
+  .bar-bg{ flex:2; min-width:100px; background:#fff; border-radius:8px; height:12px; overflow:hidden; }
+  .bar-fill{ height:100%; background:var(--pink); border-radius:8px; transition:width .4s ease; }
+  .rcount{ width:60px; text-align:right; font-weight:800; color:var(--purple); flex-shrink:0; }
+
+  .chart-wrap{
+    display:flex; gap:24px; align-items:center; flex-wrap:wrap;
+    justify-content:center; margin-top:24px;
+  }
+  .donut{
+    width:180px; height:180px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .donut-hole{
+    width:100px; height:100px; border-radius:50%; background:#fff;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .donut-hole .n{ font-size:1.3rem; font-weight:800; color:var(--purple); }
+  .donut-hole .l{ font-size:.7rem; color:var(--gray); }
+  .legend{ display:flex; flex-direction:column; gap:8px; font-size:.85rem; }
+  .legend-item{ display:flex; align-items:center; gap:8px; }
+  .swatch{ width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+
+  .toast{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%);
+    background:#333; color:#fff; padding:12px 24px; border-radius:999px;
+    font-size:.9rem; opacity:0; pointer-events:none; transition:opacity .25s ease;
+    max-width:90vw; text-align:center; z-index:50;
+  }
+  .toast.show{ opacity:1; }
+  .empty{ color:var(--gray); text-align:center; padding:20px 0; }
+  .foot-links{ text-align:center; margin-top:30px; }
+  .foot-links button{
+    background:none; border:none; color:var(--gray); font-size:.78rem;
+    text-decoration:underline; cursor:pointer;
+  }
+  .foot-links button:hover{ color:var(--pink); }
+  .retry-link{
+    background:none; border:none; color:var(--purple); font-size:.8rem;
+    text-decoration:underline; cursor:pointer; font-weight:700;
+  }
+  .retry-link:hover{ color:var(--pink); }
+
+  @media (max-width:480px){
+    h1{ font-size:1.7rem; }
+    .label{ width:auto; text-align:left; margin-bottom:4px; }
+    .row{ flex-direction:column; align-items:stretch; }
+    .actions{ flex-direction:column; }
+    .chart-wrap{ flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>公投開票中心</h1>
+  <div class="sub" id="syncStatus">載入中…</div>
+
+  <div class="row">
+    <input id="candCount" type="number" min="1" max="30" placeholder="請輸入候選人數量">
+    <button class="btn" onclick="generateCandidates()">產生按鈕</button>
+  </div>
+
+  <div id="candidateArea" class="candidates"></div>
+
+  <div class="row" style="margin-top:22px;">
+    <input id="voteTitle" type="text" placeholder="請輸入投票名稱" onchange="onTitleChange(this.value)">
+  </div>
+
+  <div class="row">
+    <div class="label">可選人數：</div>
+    <div class="choices" id="pickCountChoices"></div>
+  </div>
+
+  <div class="row">
+    <div class="label">顯示名次數：</div>
+    <div class="choices" id="showCountChoices"></div>
+  </div>
+
+  <div class="actions">
+    <button class="big vote-btn" onclick="openVote()">投票</button>
+    <button class="big count-btn" onclick="openResult()">開票</button>
+    <button class="big download-btn" onclick="downloadResult()">下載結果</button>
+  </div>
+
+  <div id="voteArea"></div>
+  <div id="resultArea"></div>
+
+  <div class="foot-links">
+    <button onclick="resetMyVoteFlag()">〔測試用〕清除本機投票紀錄</button>
+    &nbsp;·&nbsp;
+    <button onclick="resetPoll()">重新設定整個投票（清除所有票數）</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const CONFIG_KEY = 'puti-poll-config';
+const VOTES_KEY  = 'puti-poll-votes';
+const VOTED_KEY  = 'puti-has-voted';
+const PALETTE = ['#ec6ea6','#9b7fd4','#5fb8d1','#f2b134','#7bc47f','#e07a5f','#8d8d8d','#c084fc','#f472b6','#38bdf8'];
+
+let candidates = [];      // {name, photo}
+let counts = [];          // parallel vote counts
+let pickCount = 1;
+let showCount = 3;
+let selected = new Set();
+let hasVoted = false;
+let storageOK = false;    // 雲端儲存是否可用，避免失敗時瘋狂重試/噴錯
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ---------- storage helpers ---------- */
+function hasStorageApi(){
+  return typeof window !== 'undefined' && !!window.storage
+    && typeof window.storage.get === 'function';
+}
+async function saveConfig(){
+  if(!storageOK) return;
+  try{
+    await window.storage.set(CONFIG_KEY, JSON.stringify({
+      title: document.getElementById('voteTitle').value,
+      candidates, pickCount, showCount
+    }), true);
+  }catch(e){ console.error('儲存投票設定失敗', e); markStorageDown(); }
+}
+async function saveVotes(){
+  if(!storageOK) return;
+  try{
+    await window.storage.set(VOTES_KEY, JSON.stringify({ counts }), true);
+  }catch(e){ console.error('儲存票數失敗', e); markStorageDown(); }
+}
+async function loadVotesFresh(){
+  if(!storageOK) return counts;
+  try{
+    const res = await window.storage.get(VOTES_KEY, true);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      counts = candidates.map((_, i)=> parsed.counts[i] || 0);
+    }
+  }catch(e){ /* 尚無資料，維持預設 0（key 不存在屬正常情況，不視為異常） */ }
+  return counts;
+}
+async function markVoted(){
+  hasVoted = true;
+  if(!storageOK) return;
+  try{ await window.storage.set(VOTED_KEY, 'true', false); }
+  catch(e){ console.error('紀錄投票狀態失敗', e); markStorageDown(); }
+}
+async function checkVoted(){
+  if(!storageOK){ hasVoted = false; return; }
+  try{
+    const res = await window.storage.get(VOTED_KEY, false);
+    hasVoted = !!(res && res.value === 'true');
+  }catch(e){ hasVoted = false; }
+}
+function markStorageDown(){
+  if(!storageOK) return; // 已經是關閉狀態，不重複提示
+  storageOK = false;
+  document.getElementById('syncStatus').innerHTML =
+    '雲端儲存暫時連線失敗，目前為本機模式（重整頁面或換裝置不會同步）　' +
+    '<button class="retry-link" onclick="retryStorage()">重試連線</button>';
+}
+async function retryStorage(){
+  document.getElementById('syncStatus').textContent = '重新連線中…';
+  await init(true);
+}
+async function resetMyVoteFlag(){
+  if(storageOK){
+    try{ await window.storage.delete(VOTED_KEY, false); }catch(e){}
+  }
+  hasVoted = false;
+  toast('已清除本機投票紀錄，可重新測試投票');
+}
+async function resetPoll(){
+  if(!confirm('確定要清除所有票數並重設候選人嗎？此動作會影響所有人看到的結果。')) return;
+  candidates = []; counts = [];
+  document.getElementById('candCount').value = '';
+  document.getElementById('voteTitle').value = '';
+  document.getElementById('candidateArea').innerHTML = '';
+  document.getElementById('voteArea').innerHTML = '';
+  document.getElementById('resultArea').innerHTML = '';
+  if(storageOK){
+    try{
+      await window.storage.delete(CONFIG_KEY, true);
+      await window.storage.delete(VOTES_KEY, true);
+    }catch(e){}
+  }
+  toast('投票已重設');
+}
+
+/* ---------- init / load ---------- */
+async function init(isRetry){
+  rebuildPickPills();
+  rebuildShowPills();
+  const statusEl = document.getElementById('syncStatus');
+
+  if(!hasStorageApi()){
+    storageOK = false;
+    statusEl.textContent = '此環境未支援雲端同步儲存，以本機模式使用（下載的 HTML 直接開啟時屬正常現象）';
+    return;
+  }
+
+  try{
+    const res = await window.storage.get(CONFIG_KEY, true);
+    storageOK = true; // 呼叫成功（無論有沒有資料）即代表服務可用
+    if(res && res.value){
+      const cfg = JSON.parse(res.value);
+      document.getElementById('voteTitle').value = cfg.title || '';
+      candidates = cfg.candidates || [];
+      pickCount = cfg.pickCount || 1;
+      showCount = cfg.showCount || 3;
+      document.getElementById('candCount').value = candidates.length || '';
+      renderCandidateInputs();
+      rebuildPickPills();
+      rebuildShowPills();
+      await loadVotesFresh();
+      statusEl.textContent = '已載入目前投票內容（與所有參與者共用）';
+    } else {
+      statusEl.textContent = isRetry ? '連線恢復，尚未建立投票，請先產生候選人'
+                                      : '尚未建立投票，請先產生候選人';
+    }
+    await checkVoted();
+  }catch(e){
+    // key 不存在時部分後端也會拋錯，視為「服務可連線、只是還沒有資料」
+    if(String(e && e.message || e).toLowerCase().includes('not found')){
+      storageOK = true;
+      statusEl.textContent = '尚未建立投票，請先產生候選人';
+      await checkVoted();
+      return;
+    }
+    console.error('雲端儲存連線失敗', e);
+    storageOK = false;
+    statusEl.innerHTML =
+      '雲端儲存暫時連線失敗，目前為本機模式（重整頁面或換裝置不會同步）　' +
+      '<button class="retry-link" onclick="retryStorage()">重試連線</button>';
+    hasVoted = false;
+  }
+}
+
+/* ---------- candidates ---------- */
+function generateCandidates(){
+  const n = parseInt(document.getElementById('candCount').value, 10);
+  if(!n || n < 1){ toast('請輸入有效的候選人數量'); return; }
+  const old = candidates;
+  candidates = Array.from({length:n}, (_, i)=> old[i] || {name:`候選人${i+1}`, photo:null});
+  counts = candidates.map((_, i)=> counts[i] || 0);
+  renderCandidateInputs();
+  document.getElementById('voteArea').innerHTML = '';
+  document.getElementById('resultArea').innerHTML = '';
+  saveConfig();
+  saveVotes();
+}
+
+function renderCandidateInputs(){
+  const area = document.getElementById('candidateArea');
+  area.innerHTML = candidates.map((c, i)=> `
+    <div class="cand-card">
+      <div class="avatar" onclick="document.getElementById('file-${i}').click()">
+        ${c.photo ? `<img src="${c.photo}" alt="${c.name}">` : `<span class="plus">+</span>`}
+      </div>
+      <input type="file" accept="image/*" id="file-${i}" class="hidden-file" onchange="onPhotoSelected(${i}, this)">
+      <input type="text" value="${c.name}" onchange="updateName(${i}, this.value)">
+    </div>
+  `).join('');
+}
+
+function updateName(i, val){
+  candidates[i].name = val.trim() || `候選人${i+1}`;
+  saveConfig();
+}
+
+function onPhotoSelected(i, input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  if(file.size > 1.5 * 1024 * 1024){
+    toast('圖片太大，請選擇 1.5MB 以下的照片');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    candidates[i].photo = reader.result;
+    renderCandidateInputs();
+    saveConfig();
+  };
+  reader.readAsDataURL(file);
+}
+
+function onTitleChange(){ saveConfig(); }
+
+/* ---------- pills ---------- */
+function buildChoicePills(containerId, values, activeVal, cls, onSelect){
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  values.forEach(v=>{
+    const pill = document.createElement('div');
+    pill.className = `pill ${cls}` + (v === activeVal ? ' active' : '');
+    pill.tabIndex = 0;
+    pill.textContent = typeof v === 'number' ? `${v}${containerId==='pickCountChoices'?'人':'名'}` : v;
+    const trigger = ()=>{
+      let val = v;
+      if(v === '自訂'){
+        const custom = prompt('請輸入自訂數字');
+        const num = parseInt(custom, 10);
+        if(!num || num < 1){ return; }
+        val = num;
+      }
+      onSelect(val);
+      rebuildPickPills();
+      rebuildShowPills();
+      saveConfig();
+    };
+    pill.onclick = trigger;
+    pill.onkeydown = (e)=>{ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); trigger(); } };
+    el.appendChild(pill);
+  });
+}
+function rebuildPickPills(){
+  buildChoicePills('pickCountChoices', [1,2,3,4,5,'自訂'], pickCount, 'pink-outline', (v)=>{ pickCount = v; });
+}
+function rebuildShowPills(){
+  buildChoicePills('showCountChoices', [1,2,3,4,5,'自訂'], showCount, 'purple-outline', (v)=>{ showCount = v; });
+}
+
+/* ---------- voting ---------- */
+async function openVote(){
+  if(candidates.length === 0){ toast('請先產生候選人'); return; }
+  await checkVoted();
+  const area = document.getElementById('voteArea');
+  const title = document.getElementById('voteTitle').value.trim() || '（未命名投票）';
+
+  if(hasVoted){
+    area.innerHTML = `
+      <div class="section-title">🗳️ ${title}</div>
+      <div class="notice">您這個裝置已經投過票了，感謝您的參與！
+        <small>如需重新測試，可點選下方「清除本機投票紀錄」</small>
+      </div>`;
+    document.getElementById('resultArea').innerHTML = '';
+    return;
+  }
+
+  selected = new Set();
+  area.innerHTML = `
+    <div class="section-title">🗳️ ${title}（每人可選 ${pickCount} 位，點選候選人後按送出）</div>
+    <div class="vote-list" id="voteList"></div>
+    <div class="hint" id="voteHint">已選 0 / ${pickCount}</div>
+    <div style="margin-top:16px;">
+      <button class="btn" onclick="submitVote()">送出這一票</button>
+    </div>
+  `;
+  const list = document.getElementById('voteList');
+  candidates.forEach((c, i)=>{
+    const item = document.createElement('div');
+    item.className = 'vote-item';
+    item.tabIndex = 0;
+    item.innerHTML = `<div class="thumb">${c.photo ? `<img src="${c.photo}">` : (i+1)}</div><div>${c.name}</div>`;
+    item.onclick = ()=> toggleSelect(i, item);
+    item.onkeydown = (e)=>{ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleSelect(i, item); } };
+    list.appendChild(item);
+  });
+  document.getElementById('resultArea').innerHTML = '';
+}
+
+function toggleSelect(i, el){
+  if(selected.has(i)){
+    selected.delete(i);
+    el.classList.remove('selected');
+  } else {
+    if(selected.size >= pickCount){
+      toast(`最多只能選 ${pickCount} 位`);
+      return;
+    }
+    selected.add(i);
+    el.classList.add('selected');
+  }
+  document.getElementById('voteHint').textContent = `已選 ${selected.size} / ${pickCount}`;
+}
+
+async function submitVote(){
+  if(selected.size === 0){ toast('請至少選擇一位候選人'); return; }
+  await loadVotesFresh();
+  selected.forEach(i=> counts[i] = (counts[i] || 0) + 1);
+  await saveVotes();
+  await markVoted();
+  toast(storageOK ? '投票成功！感謝您的參與' : '投票成功！（本機模式，僅此裝置看得到這一票）');
+  openVote();
+}
+
+/* ---------- results ---------- */
+async function openResult(){
+  if(candidates.length === 0){ toast('請先產生候選人'); return; }
+  await loadVotesFresh();
+  const title = document.getElementById('voteTitle').value.trim() || '（未命名投票）';
+  const merged = candidates.map((c, i)=> ({ name:c.name, photo:c.photo, votes: counts[i] || 0 }));
+  const sorted = [...merged].sort((a,b)=> b.votes - a.votes);
+  const top = sorted.slice(0, showCount);
+  const totalVotes = merged.reduce((s,c)=> s + c.votes, 0);
+  const maxVotes = Math.max(1, ...merged.map(c=>c.votes));
+  const area = document.getElementById('resultArea');
+  const rankClass = (idx)=> idx===0?'gold':idx===1?'silver':idx===2?'bronze':'';
+
+  let chartHtml = '';
+  if(totalVotes > 0){
+    let acc = 0;
+    const stops = [];
+    top.forEach((c, idx)=>{
+      const pct = c.votes / totalVotes * 100;
+      const color = PALETTE[idx % PALETTE.length];
+      stops.push(`${color} ${acc}% ${acc+pct}%`);
+      acc += pct;
+    });
+    const restPct = 100 - acc;
+    if(restPct > 0.05) stops.push(`#e0e0e0 ${acc}% 100%`);
+    chartHtml = `
+      <div class="chart-wrap">
+        <div class="donut" style="background:conic-gradient(${stops.join(',')});">
+          <div class="donut-hole"><div class="n">${totalVotes}</div><div class="l">總票數</div></div>
+        </div>
+        <div class="legend">
+          ${top.map((c, idx)=>`
+            <div class="legend-item">
+              <span class="swatch" style="background:${PALETTE[idx % PALETTE.length]}"></span>
+              <span>${c.name}（${((c.votes/totalVotes*100)||0).toFixed(1)}%）</span>
+            </div>`).join('')}
+          ${restPct > 0.05 ? `<div class="legend-item"><span class="swatch" style="background:#e0e0e0"></span><span>其他（${restPct.toFixed(1)}%）</span></div>` : ''}
+        </div>
+      </div>`;
+  }
+
+  area.innerHTML = `
+    <div class="section-title">📊 開票結果：${title}（前 ${showCount} 名，共 ${totalVotes} 票）</div>
+    <div class="result-list">
+      ${top.map((c,idx)=>`
+        <div class="result-item">
+          <div class="rank ${rankClass(idx)}">${idx+1}</div>
+          <div class="rthumb">${c.photo ? `<img src="${c.photo}">` : ''}</div>
+          <div class="rname">${c.name}</div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${(c.votes/maxVotes*100)||0}%"></div></div>
+          <div class="rcount">${c.votes} 票</div>
+        </div>
+      `).join('') || '<div class="empty">尚無投票資料</div>'}
+    </div>
+    ${chartHtml}
+  `;
+}
+
+/* ---------- download ---------- */
+async function downloadResult(){
+  if(candidates.length === 0){ toast('請先產生候選人'); return; }
+  await loadVotesFresh();
+  const title = document.getElementById('voteTitle').value.trim() || '未命名投票';
+  const merged = candidates.map((c, i)=> ({ name:c.name, votes: counts[i] || 0 }));
+  const sorted = [...merged].sort((a,b)=> b.votes - a.votes);
+  let text = `投票名稱：${title}\n開票時間：${new Date().toLocaleString('zh-TW')}\n\n名次\t候選人\t票數\n`;
+  sorted.forEach((c,idx)=>{ text += `${idx+1}\t${c.name}\t${c.votes}\n`; });
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${title}_開票結果.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('已下載結果檔案');
+}
+
+init();
+</script>
+</body>
+</html>
