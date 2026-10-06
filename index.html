@@ -10,28 +10,24 @@
 <style>
 /* 版面：上方置中標題 → 設定列 → 候選人卡片（含計票）→ 結果區（左得票清單／右圓餅圖） */
 :root{
-  --bg:#f3f6f4;
-  --paper:#ffffff;
-  --ink:#1d2b3a;
-  --muted:#5d6b78;
-  --line:#d8e0dc;
-  --accent:#e2513b;      /* 投票章紅 */
-  --accent-ink:#ffffff;
-  --sun:#f6c445;         /* 校園黃 */
-  --soft:#e8efeb;
+  /* 固定深色配色：墨綠黑底、深灰面板、暗金與磚紅按鈕 */
+  --bg:#1b2420;
+  --paper:#181a1b;
+  --ink:#cdc8c2;
+  --muted:#a59d91;
+  --line:#3a3f41;
+  --accent:#a22a18;      /* 磚紅按鈕 */
+  --accent-ink:#e8e6e3;
+  --accent-text:#e2654f; /* 深底上的紅字 */
+  --sun:#785806;         /* 暗金按鈕 */
+  --sun-ink:#ece6d8;
+  --soft:#1f2c26;
+  --badge:#17222e;
+  --badge-ink:#e8e6e3;
   --display:"Huninn","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   --radius:0.875rem;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#121a21; --paper:#1b2630; --ink:#eef3f1; --muted:#9fb0bd; --line:#2e3d4a;
-    --accent:#ff6b52; --accent-ink:#1a0c09; --sun:#f6c445; --soft:#22303b; color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#121a21; --paper:#1b2630; --ink:#eef3f1; --muted:#9fb0bd; --line:#2e3d4a;
-  --accent:#ff6b52; --accent-ink:#1a0c09; --sun:#f6c445; --soft:#22303b; color-scheme:dark;
+  color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -48,7 +44,7 @@ button{cursor:pointer}
 .titlebar{text-align:center;display:flex;flex-direction:column;align-items:center;gap:0.25rem}
 .eyebrow{font-size:0.8125rem;letter-spacing:.2em;color:var(--muted)}
 #voteTitle{font-family:var(--display);font-size:clamp(1.875rem,5vw,3.25rem);text-align:center;border:none;background:transparent;width:100%;max-width:56.25rem;padding:0.375rem 0.625rem;border-bottom:0.1875rem dashed var(--line);border-radius:0}
-#voteTitle:hover,#voteTitle:focus{border-bottom-color:var(--accent);outline:none}
+#voteTitle:hover,#voteTitle:focus{border-bottom-color:var(--accent-text);outline:none}
 
 /* 卡片區塊 */
 .panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:1.25rem}
@@ -70,12 +66,12 @@ button{cursor:pointer}
 .btn:hover{background:var(--soft)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
 .btn.primary:hover{filter:brightness(1.07)}
-.btn.sun{background:var(--sun);border-color:var(--sun);color:#2a2100;font-weight:700}
+.btn.sun{background:var(--sun);border-color:var(--sun);color:var(--sun-ink);font-weight:700}
 
 /* 候選人卡片 */
 .cands{display:grid;grid-template-columns:repeat(auto-fill,minmax(15.625rem,1fr));gap:0.875rem}
 .cand{border:1px solid var(--line);border-radius:0.75rem;padding:0.875rem;display:flex;flex-direction:column;gap:0.625rem;background:var(--bg);position:relative}
-.cand .no{position:absolute;top:-0.625rem;left:0.75rem;background:var(--ink);color:var(--paper);font-family:var(--display);font-size:0.875rem;padding:1px 0.625rem;border-radius:999px}
+.cand .no{position:absolute;top:-0.625rem;left:0.75rem;background:var(--badge);color:var(--badge-ink);font-family:var(--display);font-size:0.875rem;padding:1px 0.625rem;border-radius:999px}
 .cand .row{display:flex;flex-direction:column;gap:0.1875rem}
 .cand label{font-size:0.75rem;color:var(--muted)}
 .cand input{border:1px solid var(--line);border-radius:0.5rem;padding:0.5rem 0.625rem;background:var(--paper);min-width:0}
@@ -93,7 +89,7 @@ button{cursor:pointer}
 .list{display:flex;flex-direction:column;gap:0.75rem;min-width:0}
 .item{display:grid;grid-template-columns:1.75rem minmax(0,1fr) auto;gap:0.25rem 0.75rem;align-items:center}
 .item .rank{font-family:var(--display);font-size:1.25rem;color:var(--muted);text-align:center}
-.item.lead .rank{color:var(--accent)}
+.item.lead .rank{color:var(--accent-text)}
 .item .who{display:flex;align-items:baseline;gap:0.5rem;flex-wrap:wrap;min-width:0}
 .item .who strong{font-size:1.1875rem}
 .item .who span{font-size:0.8125rem;color:var(--muted)}
@@ -111,14 +107,14 @@ button{cursor:pointer}
 .ballot-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem}
 .ballot-head h3{font-family:var(--display);font-weight:400;font-size:clamp(1.5rem,4vw,2.25rem);margin:0}
 .ballot-hint{font-size:1.125rem}
-.ballot-hint b{color:var(--accent);font-size:1.625rem;font-variant-numeric:tabular-nums}
+.ballot-hint b{color:var(--accent-text);font-size:1.625rem;font-variant-numeric:tabular-nums}
 .ballot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(12.5rem,1fr));gap:0.875rem}
 .pick{border:0.1875rem solid var(--line);background:var(--paper);border-radius:1rem;padding:1.5rem 0.875rem;text-align:center;display:flex;flex-direction:column;gap:0.375rem;align-items:center;position:relative;transition:transform .12s}
 .pick:hover{transform:translateY(-0.125rem)}
 .pick .pn{font-family:var(--display);font-size:clamp(1.625rem,4vw,2.375rem)}
 .pick .pr{font-size:0.875rem;color:var(--muted)}
-.pick .stamp{position:absolute;top:0.625rem;right:0.75rem;width:2.875rem;height:2.875rem;border-radius:50%;border:0.1875rem solid var(--accent);color:var(--accent);font-family:var(--display);font-size:1.25rem;display:none;align-items:center;justify-content:center;transform:rotate(-12deg)}
-.pick.on{border-color:var(--accent)}
+.pick .stamp{position:absolute;top:0.625rem;right:0.75rem;width:2.875rem;height:2.875rem;border-radius:50%;border:0.1875rem solid var(--accent-text);color:var(--accent-text);font-family:var(--display);font-size:1.25rem;display:none;align-items:center;justify-content:center;transform:rotate(-12deg)}
+.pick.on{border-color:var(--accent-text)}
 .pick.on .stamp{display:flex}
 .ballot-foot{display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap}
 .ballot-foot .btn{font-size:1.25rem;padding:0.875rem 1.875rem}
